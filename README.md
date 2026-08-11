@@ -1,4 +1,4 @@
-# Roamly
+# Roamly Vehicle renting platform
 
 A peer-to-peer car & bike rental marketplace for India — think "Airbnb for
 vehicles." Owners list their personal cars and bikes with their own pricing
