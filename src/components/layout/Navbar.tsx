@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/utils";
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME, CITIES } from "@/lib/constants";
 
 export interface NavUser {
   id: string;
@@ -39,6 +39,8 @@ export function Navbar({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
+  const [selectedCity, setSelectedCity] = useState<string | undefined>(city);
   const router = useRouter();
 
   async function handleLogout() {
@@ -46,6 +48,20 @@ export function Navbar({
     setMenuOpen(false);
     router.push("/");
     router.refresh();
+  }
+
+  async function handleCitySelect(cityName: string) {
+    setSelectedCity(cityName);
+    setCityOpen(false);
+    // If logged in, persist city to profile silently
+    if (user) {
+      fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ city: cityName }),
+      }).catch(() => {/* non-fatal */});
+    }
+    router.push(`/explore?city=${encodeURIComponent(cityName)}`);
   }
 
   const navLinks = [
@@ -82,11 +98,44 @@ export function Navbar({
             </nav>
           </div>
 
-          <div className="hidden md:flex items-center gap-1 text-sm text-[var(--muted)] px-3 py-1.5 rounded-full border border-[var(--border)] shrink-0">
-            <MapPin className="size-3.5" />
-            <span className="font-medium text-[var(--foreground)]">
-              {city ?? "Select city"}
-            </span>
+          {/* City selector dropdown */}
+          <div className="hidden md:block relative">
+            <button
+              onClick={() => setCityOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-sm text-[var(--muted)] px-3 py-1.5 rounded-full border border-[var(--border)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors shrink-0 cursor-pointer"
+            >
+              <MapPin className="size-3.5" />
+              <span className="font-medium text-[var(--foreground)]">
+                {selectedCity ?? "Select city"}
+              </span>
+              <ChevronDown className={cn("size-3.5 transition-transform", cityOpen && "rotate-180")} />
+            </button>
+
+            {cityOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setCityOpen(false)} />
+                <div className="absolute left-1/2 -translate-x-1/2 top-11 z-20 w-56 rounded-[var(--radius-md)] border border-[var(--border)] bg-white py-1.5 shadow-xl">
+                  <p className="px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">
+                    Select your city
+                  </p>
+                  {CITIES.map((c) => (
+                    <button
+                      key={c.name}
+                      onClick={() => handleCitySelect(c.name)}
+                      className={cn(
+                        "flex w-full items-center justify-between px-3.5 py-2 text-sm hover:bg-gray-50 transition-colors",
+                        selectedCity === c.name
+                          ? "text-[var(--primary)] font-semibold"
+                          : "text-[var(--foreground)]"
+                      )}
+                    >
+                      <span>{c.name}</span>
+                      <span className="text-xs text-[var(--muted)]">{c.state}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -183,6 +232,24 @@ export function Navbar({
               {link.label}
             </Link>
           ))}
+          {/* City selector for mobile */}
+          <div className="border-t border-[var(--border)] pt-2 mt-2">
+            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">City</p>
+            <div className="grid grid-cols-2 gap-1">
+              {CITIES.map((c) => (
+                <button
+                  key={c.name}
+                  onClick={() => { handleCitySelect(c.name); setMobileOpen(false); }}
+                  className={cn(
+                    "text-left px-3 py-2 text-sm rounded-[var(--radius-sm)] hover:bg-gray-50 transition-colors",
+                    selectedCity === c.name ? "text-[var(--primary)] font-semibold bg-blue-50" : ""
+                  )}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
           <Link
             href="/list-vehicle"
             onClick={() => setMobileOpen(false)}
