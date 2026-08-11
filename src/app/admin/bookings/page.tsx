@@ -48,7 +48,7 @@ export default async function AdminBookingsPage({ searchParams }: PageProps<"/ad
   });
 
   return (
-    <div className="max-w-6xl">
+    <div className="max-w-6xl mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>

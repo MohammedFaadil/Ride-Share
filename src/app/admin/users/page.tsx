@@ -41,7 +41,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
   });
 
   return (
-    <div className="max-w-6xl">
+    <div className="max-w-6xl mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Users</h1>

@@ -84,7 +84,7 @@ export default async function AdminOverviewPage() {
   ];
 
   return (
-    <div className="max-w-6xl">
+    <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Admin overview</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">Platform-wide metrics across users, vehicles, bookings and payments.</p>
 

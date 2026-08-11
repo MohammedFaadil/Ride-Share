@@ -34,7 +34,7 @@ export default async function AdminDisputesPage() {
   });
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Disputes</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">Review and resolve renter/owner disputes and damage claims.</p>
 

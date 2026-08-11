@@ -37,7 +37,7 @@ export default async function AdminPaymentsPage() {
   ]);
 
   return (
-    <div className="max-w-6xl">
+    <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">Read-only view of platform payments and owner payouts.</p>
 

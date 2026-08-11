@@ -15,7 +15,7 @@ export default async function NotificationsPage() {
   });
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <NotificationList
         initial={notifications.map((n) => ({ ...n, createdAt: n.createdAt.toISOString() }))}
       />

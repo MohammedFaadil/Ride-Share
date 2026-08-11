@@ -22,7 +22,7 @@ export default async function MaintenancePage() {
   });
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Maintenance</h1>
       <p className="mt-1 text-sm text-[var(--muted)] mb-6">Track servicing and document renewals for your vehicles.</p>
 

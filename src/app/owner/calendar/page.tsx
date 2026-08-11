@@ -31,7 +31,7 @@ export default async function OwnerCalendarPage() {
   });
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Availability</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">Upcoming bookings and blocked dates across all your vehicles.</p>
 

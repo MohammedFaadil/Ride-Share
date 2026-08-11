@@ -38,7 +38,7 @@ export default async function EarningsPage() {
   const maxMonthly = Math.max(...monthlyEntries.map(([, v]) => v), 1);
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Earnings</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">Track your revenue and manage payouts.</p>
 

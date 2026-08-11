@@ -11,7 +11,7 @@ export default async function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">Member since {formatDate(user.createdAt)}</p>

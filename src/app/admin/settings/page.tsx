@@ -30,7 +30,7 @@ export default async function AdminSettingsPage() {
   }));
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Platform settings</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">Edit platform-wide configuration values.</p>
 

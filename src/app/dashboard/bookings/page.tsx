@@ -33,7 +33,7 @@ export default async function MyBookingsPage({
   });
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">My Bookings</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">All your rental requests and trips in one place.</p>
 

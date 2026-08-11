@@ -42,7 +42,7 @@ export default async function DashboardOverviewPage() {
   const allUpcoming = [...active, ...upcoming];
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Welcome back, {user.name.split(" ")[0]}</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">Here&apos;s what&apos;s happening with your rentals.</p>
 

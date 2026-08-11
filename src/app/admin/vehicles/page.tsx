@@ -38,7 +38,7 @@ export default async function AdminVehiclesPage({ searchParams }: PageProps<"/ad
   });
 
   return (
-    <div className="max-w-6xl">
+    <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Vehicles</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">{formatNumber(vehicles.length)} shown &middot; review and moderate listings.</p>
 

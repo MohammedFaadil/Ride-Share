@@ -21,7 +21,7 @@ export default async function OwnerReviewsPage() {
   const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Reviews</h1>
         {reviews.length > 0 && <RatingStars value={avg} count={reviews.length} size={16} />}

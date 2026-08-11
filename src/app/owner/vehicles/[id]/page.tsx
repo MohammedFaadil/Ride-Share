@@ -36,7 +36,7 @@ export default async function ManageVehiclePage({ params }: PageProps<"/owner/ve
   });
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl mx-auto">
       <div className="flex items-start justify-between gap-4 mb-6">
         <div className="flex gap-4">
           <VehicleThumb type={vehicle.type as "CAR" | "BIKE"} brand={vehicle.brand} model={vehicle.model} seed={vehicle.id} className="h-20 w-28 rounded-[var(--radius-md)] shrink-0" iconClassName="size-8" />

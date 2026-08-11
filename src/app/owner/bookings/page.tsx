@@ -41,7 +41,7 @@ export default async function OwnerBookingsPage({
   });
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold tracking-tight">Booking Requests</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">Manage requests and track rentals across all your vehicles.</p>
 
