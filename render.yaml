@@ -1,0 +1,59 @@
+# Render Blueprint — one-click deploy for Roamly (web service + managed Postgres).
+#
+# Usage:
+#   1. Push this repo to GitHub/GitLab.
+#   2. In the Render dashboard: New > Blueprint > select this repo.
+#   3. Render reads this file, provisions the database and web service, and
+#      deploys automatically. No manual env var setup needed — JWT_SECRET is
+#      generated for you and DATABASE_URL is wired to the database below.
+#
+# See README.md > "Deploying to Render" for the full walkthrough, including
+# what to do if preDeployCommand isn't available on your plan, and how to add
+# a persistent disk for uploaded photos.
+
+databases:
+  - name: roamly-db
+    databaseName: roamly
+    user: roamly
+    plan: free
+    region: singapore
+
+services:
+  - type: web
+    name: roamly
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    # Runs once per deploy, after the build but before traffic switches to the
+    # new instance: applies pending migrations, then seeds demo data only if
+    # the database is empty (safe to run on every deploy — see
+    # prisma/seed-if-empty.ts). If your plan doesn't support preDeployCommand,
+    # run these two commands manually from the Render Shell after first deploy.
+    preDeployCommand: npm run db:migrate:deploy && npm run db:seed:if-empty
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: roamly-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      # Uploaded vehicle photos / KYC files are written here (see
+      # src/lib/storage.ts). On the free plan this is ephemeral — it resets on
+      # every deploy/restart, which is fine for a demo. To persist uploads
+      # across deploys, upgrade the service to a plan that supports disks,
+      # uncomment the `disk:` block below, and point UPLOAD_DIR at its
+      # mountPath.
+      - key: UPLOAD_DIR
+        value: /opt/render/project/src/uploads
+    # disk:
+    #   name: roamly-uploads
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    # (then set UPLOAD_DIR to /var/data/uploads instead, above)

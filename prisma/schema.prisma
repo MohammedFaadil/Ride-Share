@@ -1,0 +1,507 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum VehicleType {
+  CAR
+  BIKE
+}
+
+enum VehicleCategory {
+  HATCHBACK
+  SEDAN
+  SUV
+  MUV
+  LUXURY
+  ELECTRIC_CAR
+  SCOOTER
+  COMMUTER_BIKE
+  SPORTS_BIKE
+  CRUISER_BIKE
+  ADVENTURE_BIKE
+  ELECTRIC_BIKE
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  CNG
+  ELECTRIC
+  HYBRID
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+}
+
+enum VehicleStatus {
+  DRAFT
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum BookingStatus {
+  REQUESTED
+  OWNER_ACCEPTED
+  OWNER_REJECTED
+  CONFIRMED
+  HANDOVER_PENDING
+  ACTIVE
+  RETURN_PENDING
+  COMPLETED
+  CANCELLED_BY_RENTER
+  CANCELLED_BY_OWNER
+  DISPUTED
+}
+
+enum RentalUnit {
+  HOUR
+  DAY
+  WEEK
+}
+
+enum PaymentType {
+  RENTAL
+  DEPOSIT
+  EXTRA_CHARGE
+  REFUND
+  PAYOUT
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum DocumentType {
+  AADHAAR
+  DRIVING_LICENCE
+  PAN
+  REGISTRATION_CERTIFICATE
+  INSURANCE
+  POLLUTION_CERTIFICATE
+}
+
+enum VerificationStatus {
+  NOT_SUBMITTED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ReviewType {
+  RENTER_TO_OWNER
+  OWNER_TO_RENTER
+  RENTER_TO_VEHICLE
+}
+
+enum NotificationType {
+  BOOKING_REQUEST
+  BOOKING_ACCEPTED
+  BOOKING_REJECTED
+  PAYMENT_SUCCESS
+  KYC_UPDATE
+  AGREEMENT_READY
+  RENTAL_STARTING
+  RETURN_REMINDER
+  DAMAGE_CLAIM
+  DISPUTE_UPDATE
+  REVIEW_REQUEST
+  MESSAGE
+  GENERAL
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  WAITING_ON_OWNER
+  WAITING_ON_RENTER
+  RESOLVED
+  ESCALATED
+}
+
+enum DamageClaimStatus {
+  REPORTED
+  RENTER_NOTIFIED
+  ACCEPTED
+  DISPUTED
+  RESOLVED
+}
+
+// ============================================================
+// USER & IDENTITY
+// ============================================================
+
+model User {
+  id                String   @id @default(cuid())
+  name              String
+  email             String   @unique
+  phone             String?  @unique
+  passwordHash      String
+  avatarUrl         String?
+  city              String?
+  bio               String?
+  role              String   @default("USER") // USER | ADMIN | SUPPORT
+  emailVerified     Boolean  @default(false)
+  phoneVerified     Boolean  @default(false)
+  identityVerified  VerificationStatus @default(NOT_SUBMITTED)
+  licenceVerified   VerificationStatus @default(NOT_SUBMITTED)
+  trustScore        Int      @default(50)
+  suspended         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  vehicles          Vehicle[]        @relation("OwnerVehicles")
+  bookingsAsRenter  Booking[]        @relation("RenterBookings")
+  documents         Document[]
+  favorites         Favorite[]
+  reviewsGiven      Review[]         @relation("ReviewAuthor")
+  reviewsReceived   Review[]         @relation("ReviewTarget")
+  notifications     Notification[]
+  messagesSent      Message[]        @relation("MessageSender")
+  conversationsA    Conversation[]   @relation("ConversationUserA")
+  conversationsB    Conversation[]   @relation("ConversationUserB")
+  payouts           Payout[]
+  supportTickets    SupportTicket[]
+}
+
+model Document {
+  id           String              @id @default(cuid())
+  userId       String
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         DocumentType
+  fileUrl      String
+  status       VerificationStatus  @default(PENDING)
+  createdAt    DateTime            @default(now())
+}
+
+// ============================================================
+// VEHICLE
+// ============================================================
+
+model Vehicle {
+  id                String          @id @default(cuid())
+  ownerId           String
+  owner             User            @relation("OwnerVehicles", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  type              VehicleType
+  category          VehicleCategory
+  brand             String
+  model             String
+  variant           String?
+  year              Int
+  color             String?
+  fuelType          FuelType
+  transmission      Transmission
+  seats             Int?
+  engineCapacityCc  Int?
+  registrationNo    String
+  odometerKm         Int             @default(0)
+
+  description       String?
+  features          String          @default("[]") // JSON string array
+
+  pricePerHour      Float
+  pricePerDay       Float
+  pricePerWeek      Float
+  securityDeposit   Float           @default(0)
+  includedKmPerDay  Int             @default(150)
+  extraKmCharge     Float           @default(10)
+  minRentalHours    Int             @default(4)
+  maxRentalDays     Int             @default(30)
+  fuelPolicy        String          @default("Return with same fuel level")
+  lateFeePerHour    Float           @default(100)
+
+  city              String
+  area              String?
+  address           String?
+  lat               Float
+  lng               Float
+
+  status            VehicleStatus   @default(ACTIVE)
+  verified          Boolean         @default(false)
+  ratingAvg         Float           @default(0)
+  ratingCount       Int             @default(0)
+  totalRentals      Int             @default(0)
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  images            VehicleImage[]
+  documents         VehicleDocument[]
+  availabilityBlocks AvailabilityBlock[]
+  bookings          Booking[]
+  favorites         Favorite[]
+  reviews           Review[]
+  maintenanceLogs   MaintenanceLog[]
+}
+
+model VehicleImage {
+  id         String   @id @default(cuid())
+  vehicleId  String
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  url        String
+  label      String?
+  sortOrder  Int      @default(0)
+}
+
+model VehicleDocument {
+  id         String              @id @default(cuid())
+  vehicleId  String
+  vehicle    Vehicle             @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  type       DocumentType
+  fileUrl    String
+  status     VerificationStatus  @default(PENDING)
+  expiresAt  DateTime?
+  createdAt  DateTime            @default(now())
+}
+
+model AvailabilityBlock {
+  id         String   @id @default(cuid())
+  vehicleId  String
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  startAt    DateTime
+  endAt      DateTime
+  reason     String   @default("Blocked by owner")
+}
+
+model MaintenanceLog {
+  id         String   @id @default(cuid())
+  vehicleId  String
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  type       String
+  note       String?
+  dueAt      DateTime?
+  completedAt DateTime?
+  createdAt  DateTime @default(now())
+}
+
+// ============================================================
+// BOOKING
+// ============================================================
+
+model Booking {
+  id                String        @id @default(cuid())
+  vehicleId         String
+  vehicle           Vehicle       @relation(fields: [vehicleId], references: [id])
+  renterId          String
+  renter            User          @relation("RenterBookings", fields: [renterId], references: [id])
+
+  startAt           DateTime
+  endAt             DateTime
+  rentalUnit        RentalUnit    @default(DAY)
+
+  baseFare          Float
+  platformFee       Float
+  taxes             Float
+  securityDeposit   Float
+  totalPayable      Float
+
+  includedKm        Int
+  extraKmCharge     Float
+
+  status            BookingStatus @default(REQUESTED)
+  cancelReason      String?
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  agreement         RentalAgreement?
+  payments          Payment[]
+  handover          HandoverInspection?
+  returnInspection  ReturnInspection?
+  damageClaims      DamageClaim[]
+  reviews           Review[]
+  dispute           Dispute?
+  conversation      Conversation?
+}
+
+model RentalAgreement {
+  id                String    @id @default(cuid())
+  bookingId         String    @unique
+  booking           Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  termsSnapshot     String    // JSON snapshot of policy terms at time of booking
+  renterSignedAt    DateTime?
+  ownerSignedAt     DateTime?
+  createdAt         DateTime  @default(now())
+}
+
+model HandoverInspection {
+  id             String   @id @default(cuid())
+  bookingId      String   @unique
+  booking        Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  odometerKm     Int
+  fuelLevelPct   Int
+  photos         String   @default("[]")
+  notes          String?
+  ownerConfirmed Boolean  @default(false)
+  renterConfirmed Boolean @default(false)
+  confirmedAt    DateTime?
+}
+
+model ReturnInspection {
+  id                String   @id @default(cuid())
+  bookingId         String   @unique
+  booking           Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  odometerKm        Int
+  fuelLevelPct      Int
+  photos            String   @default("[]")
+  notes             String?
+  extraKmUsed       Int      @default(0)
+  extraKmFee        Float    @default(0)
+  lateHours         Float    @default(0)
+  lateFee           Float    @default(0)
+  ownerConfirmed     Boolean  @default(false)
+  renterConfirmed    Boolean  @default(false)
+  confirmedAt       DateTime?
+}
+
+model DamageClaim {
+  id             String            @id @default(cuid())
+  bookingId      String
+  booking        Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  description    String
+  estimatedCost  Float
+  evidenceUrls   String            @default("[]")
+  status         DamageClaimStatus @default(REPORTED)
+  renterResponse String?
+  createdAt      DateTime          @default(now())
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  bookingId   String
+  booking     Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  type        PaymentType
+  amount      Float
+  status      PaymentStatus @default(SUCCESS)
+  method      String        @default("Demo Wallet")
+  referenceId String        @default(cuid())
+  createdAt   DateTime      @default(now())
+}
+
+model Payout {
+  id          String   @id @default(cuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  amount      Float
+  status      String   @default("COMPLETED")
+  createdAt   DateTime @default(now())
+}
+
+model Dispute {
+  id          String        @id @default(cuid())
+  bookingId   String        @unique
+  booking     Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  category    String
+  description String
+  status      DisputeStatus @default(OPEN)
+  resolution  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+// ============================================================
+// REVIEWS, FAVORITES, MESSAGING, NOTIFICATIONS
+// ============================================================
+
+model Review {
+  id           String     @id @default(cuid())
+  bookingId    String
+  booking      Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User       @relation("ReviewAuthor", fields: [authorId], references: [id])
+  targetUserId String?
+  targetUser   User?      @relation("ReviewTarget", fields: [targetUserId], references: [id])
+  vehicleId    String?
+  vehicle      Vehicle?   @relation(fields: [vehicleId], references: [id])
+  type         ReviewType
+  rating       Int
+  comment      String?
+  createdAt    DateTime   @default(now())
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, vehicleId])
+}
+
+model Conversation {
+  id         String    @id @default(cuid())
+  bookingId  String?   @unique
+  booking    Booking?  @relation(fields: [bookingId], references: [id])
+  userAId    String
+  userA      User      @relation("ConversationUserA", fields: [userAId], references: [id])
+  userBId    String
+  userB      User      @relation("ConversationUserB", fields: [userBId], references: [id])
+  createdAt  DateTime  @default(now())
+  messages   Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("MessageSender", fields: [senderId], references: [id])
+  body           String
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  read      Boolean           @default(false)
+  createdAt DateTime          @default(now())
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  name      String
+  email     String
+  phone     String?
+  category  String
+  subject   String
+  message   String
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+}
+
+// ============================================================
+// PLATFORM SETTINGS
+// ============================================================
+
+model PlatformSetting {
+  key   String @id
+  value String
+}
