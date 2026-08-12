@@ -241,6 +241,8 @@ prisma/
   migrations/             SQL migration history (Postgres)
   seed.ts                 Destructive full reseed — local dev only
   seed-if-empty.ts        Safe reseed — only runs if the DB is empty (Render)
+  vehicle-images.ts       Shared brand+model → real photo URL map (Wikimedia Commons)
+  backfill-vehicle-images.ts  Non-destructive — adds photos to existing imageless vehicles (Render)
 src/
   app/
     (site)/               Public pages — homepage, explore, vehicle detail,
@@ -350,7 +352,8 @@ To reset your local database back to a clean seeded state at any point:
 | `npm start` | Start the production server (reads `PORT` from the environment, defaults to 3000) |
 | `npm run lint` | ESLint |
 | `npm run db:seed` | **Destructive.** Wipes and reseeds the database with fresh demo data — local dev only |
-| `npm run db:seed:if-empty` | Safe to run anytime — seeds demo data only if the `User` table is empty. Used automatically on Render's first deploy |
+| `npm run db:seed:if-empty` | Safe to run anytime — seeds demo data only if the `User` table is empty. Used automatically on every deploy |
+| `npm run db:backfill-images` | **Non-destructive**, safe to run anytime — adds a real photo (from `prisma/vehicle-images.ts`) to any existing vehicle that doesn't have one yet, without touching anything else. Used automatically on every deploy (see below) |
 | `npm run db:reset` | `prisma migrate reset --force` — drops, recreates, migrates, and reseeds |
 | `npm run db:migrate:deploy` | Applies pending migrations without prompting — used in production deploys |
 | `npm run db:studio` | Opens [Prisma Studio](https://www.prisma.io/studio) — a GUI for browsing/editing the database |
@@ -388,27 +391,45 @@ Render reads it and provisions both automatically.
    - A **free web service** (`roamly`) with `DATABASE_URL` wired to that
      database and a secure random `JWT_SECRET` generated for you — nothing to
      fill in.
-4. On the first deploy, `preDeployCommand` runs `prisma migrate deploy`
-   (creates all tables) and then `db:seed:if-empty` (loads demo data, since
-   the database starts empty). Every later deploy re-runs the same two
-   commands, but the seed step is a no-op once real data exists — **your
-   data is never wiped by a redeploy.**
+4. Every time the app boots (`npm start` → `scripts/start.mjs`), it runs three
+   idempotent steps before starting the server: `prisma migrate deploy`
+   (applies any pending migrations), `db:seed:if-empty` (loads demo data only
+   if the database is still empty), and `db:backfill-images` (adds a real
+   photo to any vehicle that doesn't have one yet — see below). None of these
+   ever touch existing real data — **a redeploy or restart never wipes
+   anything.**
 5. Once the deploy finishes, open the service URL and log in with a
    [demo account](#demo-accounts).
 
 That's the whole process — no manual environment variable entry, no separate
 database setup step, no SSH session required.
 
-### If your plan doesn't support `preDeployCommand`
+> `render.yaml` also sets a `preDeployCommand` running the same migrate/seed/
+> backfill steps, for accounts on a plan where that feature is available (it
+> runs once, before traffic switches to the new instance, which is slightly
+> cleaner than doing it at boot). **Free-tier Render doesn't support
+> `preDeployCommand`** — Render just ignores that line — so `scripts/start.mjs`
+> running the same steps at boot is what actually makes this work on the free
+> plan. You don't need to configure anything either way; one of the two paths
+> always runs.
 
-Some Render plans/older accounts don't have pre-deploy commands available. If
-migrations don't run automatically, open the service's **Shell** tab in the
-Render dashboard after the first deploy and run:
+### Why images might be missing after a deploy (and how it self-heals)
 
-```bash
-npm run db:migrate:deploy
-npm run db:seed:if-empty
-```
+If you deployed *before* `prisma/vehicle-images.ts` existed (or before a
+vehicle model was added to it) and the database was already seeded, later
+deploys skip re-seeding — `db:seed:if-empty` only runs once, on purpose, so it
+never wipes real bookings/users. That would normally leave those vehicles
+permanently imageless even after pulling the updated code.
+
+`db:backfill-images` (`prisma/backfill-vehicle-images.ts`) exists specifically
+for that: it's a **non-destructive** pass that finds any vehicle with zero
+photos and adds one if its brand+model matches an entry in
+`prisma/vehicle-images.ts`, without touching users, bookings, or anything
+else. It runs automatically on every boot (see above), so simply redeploying
+(or restarting the service) after pulling updated code is enough to fix it —
+no manual database work needed. You can also run it by hand any time:
+`npm run db:backfill-images` (locally) or from the Render **Shell** tab
+(deployed).
 
 ### Manual setup (without the Blueprint)
 
@@ -419,7 +440,8 @@ If you'd rather click through the UI instead of using `render.yaml`:
 2. **New → Web Service** — connect the repo.
    - Build command: `npm install && npm run build`
    - Start command: `npm start`
-   - Pre-deploy command (if available): `npm run db:migrate:deploy && npm run db:seed:if-empty`
+   - Pre-deploy command (if available): `npm run db:migrate:deploy && npm run db:seed:if-empty && npm run db:backfill-images`
+     — optional either way, since `npm start` runs the same three steps at boot
    - Environment variables:
      - `DATABASE_URL` — the connection string from step 1
      - `JWT_SECRET` — generate one with
