@@ -29,6 +29,7 @@ export default async function HomePage() {
       where: { status: "ACTIVE" },
       orderBy: [{ ratingAvg: "desc" }, { totalRentals: "desc" }],
       take: 8,
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
     }),
     user
       ? prisma.favorite.findMany({ where: { userId: user.id }, select: { vehicleId: true } })
@@ -149,7 +150,7 @@ export default async function HomePage() {
             {featured.map((v) => (
               <VehicleCard
                 key={v.id}
-                vehicle={v}
+                vehicle={{ ...v, imageUrl: v.images[0]?.url ?? null }}
                 favorited={favoriteSet.has(v.id)}
                 isAuthenticated={!!user}
               />

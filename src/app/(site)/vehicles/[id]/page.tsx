@@ -99,6 +99,7 @@ export default async function VehicleDetailPage({
       where: { city: vehicle.city, type: vehicle.type, status: "ACTIVE", id: { not: vehicle.id } },
       orderBy: { ratingAvg: "desc" },
       take: 4,
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
     }),
   ]);
 
@@ -278,7 +279,7 @@ export default async function VehicleDetailPage({
           <h2 className="text-lg font-bold mb-4">Similar vehicles in {vehicle.city}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {similar.map((v) => (
-              <VehicleCard key={v.id} vehicle={v} isAuthenticated={!!user} />
+              <VehicleCard key={v.id} vehicle={{ ...v, imageUrl: v.images[0]?.url ?? null }} isAuthenticated={!!user} />
             ))}
           </div>
         </div>

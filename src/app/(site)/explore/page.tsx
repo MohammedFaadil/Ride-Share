@@ -68,7 +68,12 @@ export default async function ExplorePage({
       : [{ ratingAvg: "desc" }, { totalRentals: "desc" }];
 
   const [vehicles, total, favoriteRows, priceStatsAll] = await Promise.all([
-    prisma.vehicle.findMany({ where, orderBy, take: 60 }),
+    prisma.vehicle.findMany({
+      where,
+      orderBy,
+      take: 60,
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+    }),
     prisma.vehicle.count({ where }),
     user
       ? prisma.favorite.findMany({ where: { userId: user.id }, select: { vehicleId: true } })
@@ -114,6 +119,7 @@ export default async function ExplorePage({
     lat: v.lat,
     lng: v.lng,
     distanceKm: cityMeta ? distanceKm(cityMeta.lat, cityMeta.lng, v.lat, v.lng) : undefined,
+    imageUrl: v.images[0]?.url ?? null,
   }));
 
   return (
