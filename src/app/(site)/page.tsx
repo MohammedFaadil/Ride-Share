@@ -20,17 +20,9 @@ import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { CAR_CATEGORIES, BIKE_CATEGORIES, CITIES, APP_NAME } from "@/lib/constants";
+import { ACCENTS, type Accent } from "@/lib/accents";
 
 export const dynamic = "force-dynamic";
-
-const ACCENTS = [
-  { bg: "bg-blue-50", text: "text-blue-600", solid: "bg-blue-600" },
-  { bg: "bg-violet-50", text: "text-violet-600", solid: "bg-violet-600" },
-  { bg: "bg-amber-50", text: "text-amber-600", solid: "bg-amber-600" },
-  { bg: "bg-emerald-50", text: "text-emerald-600", solid: "bg-emerald-600" },
-  { bg: "bg-rose-50", text: "text-rose-600", solid: "bg-rose-600" },
-  { bg: "bg-cyan-50", text: "text-cyan-600", solid: "bg-cyan-600" },
-];
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -57,11 +49,13 @@ export default async function HomePage() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-[var(--border)] bg-gradient-to-b from-gray-50 to-white">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-drift-1 absolute -top-24 -left-24 size-[28rem] rounded-full bg-blue-400/20 blur-[100px]" />
-          <div className="animate-drift-2 absolute -top-10 right-0 size-[24rem] rounded-full bg-violet-400/20 blur-[100px]" />
-          <div className="animate-drift-1 absolute bottom-[-8rem] left-1/3 size-[22rem] rounded-full bg-amber-300/15 blur-[110px]" />
-        </div>
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.4]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 20%, rgba(37,99,235,0.06), transparent 40%), radial-gradient(circle at 80% 0%, rgba(20,22,26,0.05), transparent 40%)",
+          }}
+        />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28">
           <Reveal className="mx-auto max-w-3xl text-center">
@@ -72,7 +66,7 @@ export default async function HomePage() {
             <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               Rent a car or bike
               <br />
-              <span className="text-gradient">from people near you.</span>
+              from people near you.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-base text-[var(--muted)] sm:text-lg">
               Find verified vehicles, flexible rental periods, and transparent
@@ -236,38 +230,34 @@ export default async function HomePage() {
       {/* Owner CTA */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
         <Reveal>
-          <div className="group relative overflow-hidden rounded-[var(--radius-xl)] bg-gradient-to-br from-[var(--primary)] via-[#1a1030] to-indigo-950 px-6 py-14 sm:px-16">
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="animate-drift-1 absolute -top-16 right-10 size-72 rounded-full bg-violet-500/25 blur-[90px]" />
-              <div className="animate-drift-2 absolute bottom-[-6rem] left-10 size-72 rounded-full bg-blue-500/20 blur-[90px]" />
-              <div
-                className="absolute inset-0 opacity-[0.06]"
-                style={{
-                  backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)",
-                  backgroundSize: "20px 20px",
-                }}
-              />
-            </div>
+          <div className="group relative overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-white px-6 py-14 shadow-sm sm:px-16">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.5]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 85% 20%, rgba(37,99,235,0.07), transparent 45%), radial-gradient(circle at 10% 90%, rgba(124,58,237,0.06), transparent 45%)",
+              }}
+            />
             <div className="relative flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
               <div className="max-w-lg">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80">
-                  <Star className="size-3 fill-current text-amber-400" /> For vehicle owners
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-[var(--muted)]">
+                  <Star className="size-3 fill-current text-amber-500" /> For vehicle owners
                 </span>
-                <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl">
+                <h2 className="mt-4 text-2xl font-bold text-[var(--foreground)] sm:text-3xl">
                   Turn your idle car or bike into income.
                 </h2>
-                <p className="mt-3 text-sm text-white/70 sm:text-base">
+                <p className="mt-3 text-sm text-[var(--muted)] sm:text-base">
                   List your vehicle on {APP_NAME}, set your own price and availability,
                   and start earning from renters near you — with owner-controlled
                   approval on every request.
                 </p>
               </div>
               <div className="flex shrink-0 gap-3">
-                <Button href="/list-vehicle" size="lg" variant="secondary" className="!bg-white relative overflow-hidden">
+                <Button href="/list-vehicle" size="lg" className="relative overflow-hidden">
                   <span className="relative z-10">List your vehicle</span>
-                  <span className="animate-shine pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-full bg-gradient-to-r from-transparent via-black/10 to-transparent" />
+                  <span className="animate-shine pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                 </Button>
-                <Button href="/how-it-works#owners" size="lg" variant="ghost" className="!text-white hover:!bg-white/10">
+                <Button href="/how-it-works#owners" size="lg" variant="secondary">
                   See how it works
                 </Button>
               </div>
@@ -278,8 +268,6 @@ export default async function HomePage() {
     </div>
   );
 }
-
-type Accent = { bg: string; text: string; solid: string };
 
 function StatPill({
   icon,
