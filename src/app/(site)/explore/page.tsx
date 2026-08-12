@@ -78,8 +78,15 @@ export default async function ExplorePage({
     user
       ? prisma.favorite.findMany({ where: { userId: user.id }, select: { vehicleId: true } })
       : Promise.resolve([]),
+    // Deliberately scoped to city only, NOT type/category/etc — this defines
+    // the slider's scale (track range + histogram buckets). If it were also
+    // scoped to the current type filter, toggling Cars/Bikes would rescale
+    // the whole slider out from under the user (cars and bikes sit in very
+    // different price bands), making the track visibly jump around. Keeping
+    // it city-only means the track stays put; only which bars are
+    // highlighted changes as other filters narrow the results.
     prisma.vehicle.findMany({
-      where: { status: "ACTIVE", ...(city ? { city } : {}), ...(type ? { type: type as never } : {}) },
+      where: { status: "ACTIVE", ...(city ? { city } : {}) },
       select: { pricePerDay: true },
     }),
   ]);
